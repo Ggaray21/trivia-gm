@@ -5,18 +5,18 @@
   <title>Panel del Anfitrión - Trivia GM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #eef2f5; }
-    h1 { text-align: center; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #1C3D5D; color: #A6C5E1; }
+    h1 { text-align: center; color: #004B8D; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background-color: #004B8D; color: white; }
+    th { background-color: #003E5B; color: white; }
     .empate { color: red; font-weight: bold; margin-top: 20px; text-align: center; }
   </style>
 </head>
 <body>
 
 <h1>Panel del Anfitrión</h1>
-<p>Actualizando cada 10 segundos...</p>
+
 <table>
   <thead>
     <tr>
@@ -30,58 +30,57 @@
 <div id="empate" class="empate"></div>
 
 <script>
-const sheetID = "1QNmSAK_z5rGGg9rX4ATlmcNamVWQCx-GgWIvQNyI3uc";
-const sheetName = "Puntajes";
-const apiURL = `https://opensheet.elk.sh/${sheetID}/${sheetName}`;
+  const sheetID = "1QNmSAK_z5rGGg9rX4ATlmcNamVWQCx-GgWIvQNyI3uc";
+  const apiURL = `https://opensheet.elk.sh/${sheetID}/Puntajes`;
 
-async function obtenerDatos() {
-  const response = await fetch(apiURL);
-  const data = await response.json();
+  async function obtenerDatos() {
+    const response = await fetch(apiURL);
+    const data = await response.json();
 
-  const puntajesPorEquipo = {};
-  data.forEach(entry => {
-    const equipo = entry.Equipo?.trim();
-    const puntos = parseInt(entry.Puntaje || 0);
-    if (!equipo) return;
-    if (!puntajesPorEquipo[equipo]) {
-      puntajesPorEquipo[equipo] = 0;
+    const puntajesPorEquipo = {};
+    data.forEach(entry => {
+      const equipo = entry.Equipo?.trim();
+      const puntos = parseInt(entry.Puntaje || 0);
+      if (!equipo) return;
+      if (!puntajesPorEquipo[equipo]) {
+        puntajesPorEquipo[equipo] = 0;
+      }
+      puntajesPorEquipo[equipo] += puntos;
+    });
+
+    mostrarTabla(puntajesPorEquipo);
+  }
+
+  function mostrarTabla(puntajes) {
+    const tabla = document.getElementById("tablaEquipos");
+    tabla.innerHTML = "";
+
+    const equiposOrdenados = Object.entries(puntajes).sort((a, b) => b[1] - a[1]);
+    let hayEmpate = false;
+
+    equiposOrdenados.forEach(([equipo, puntos]) => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `<td>${equipo}</td><td>${puntos}</td>`;
+      tabla.appendChild(fila);
+    });
+
+    if (
+      equiposOrdenados.length >= 2 &&
+      equiposOrdenados[0][1] === equiposOrdenados[1][1]
+    ) {
+      hayEmpate = true;
     }
-    puntajesPorEquipo[equipo] += puntos;
-  });
 
-  mostrarTabla(puntajesPorEquipo);
-}
-
-function mostrarTabla(puntajes) {
-  const tabla = document.getElementById("tablaEquipos");
-  tabla.innerHTML = "";
-
-  const equiposOrdenados = Object.entries(puntajes).sort((a, b) => b[1] - a[1]);
-  let hayEmpate = false;
-
-  equiposOrdenados.forEach(([equipo, puntos]) => {
-    const fila = document.createElement("tr");
-    fila.innerHTML = `<td>${equipo}</td><td>${puntos}</td>`;
-    tabla.appendChild(fila);
-  });
-
-  if (
-    equiposOrdenados.length >= 2 &&
-    equiposOrdenados[0][1] === equiposOrdenados[1][1]
-  ) {
-    hayEmpate = true;
+    const empateDiv = document.getElementById("empate");
+    if (hayEmpate) {
+      empateDiv.innerText = "⚠️ Hay un empate. Usa la pregunta de desempate.";
+    } else {
+      empateDiv.innerText = "";
+    }
   }
 
-  const empateDiv = document.getElementById("empate");
-  if (hayEmpate) {
-    empateDiv.innerText = "⚠️ Hay un empate. Usa la pregunta de desempate:\n¿A cuántos puntos equivale una frecuencia diaria a un riesgo?\nA: 10  B: 2.5  C: 0.1 (Correcta: B)";
-  } else {
-    empateDiv.innerText = "";
-  }
-}
-
-obtenerDatos();
-setInterval(obtenerDatos, 10000); // Actualiza cada 10s
+  obtenerDatos();
+  setInterval(obtenerDatos, 10000);
 </script>
 
 </body>
