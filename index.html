@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Trivia GM - Seguridad Industrial</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f0f0f0; }
+    .logo { text-align: center; margin-bottom: 20px; }
+    .question { margin: 20px 0; }
+    .options button { display: block; margin: 5px 0; padding: 10px; width: 100%; }
+    .hide { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="logo">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/0c/General_Motors_%282021%29.svg" width="200">
+</div>
+
+<h2>Trivia de Seguridad Industrial</h2>
+
+<label for="equipo">Nombre del equipo:</label>
+<input type="text" id="equipo" placeholder="Ej. Equipo 1">
+<button onclick="iniciarTrivia()">Iniciar</button>
+
+<div id="quiz" class="hide">
+  <div id="pregunta"></div>
+  <div class="options" id="opciones"></div>
+  <div id="feedback"></div>
+</div>
+
+<div id="final" class="hide">
+  <h3>¡Trivia completada!</h3>
+  <p>Puntaje total: <span id="puntajeFinal"></span></p>
+</div>
+
+<script>
+const preguntas = [
+  {
+    texto: "Es el formato común representado mediante una tarjeta, utilizado para documentar las observaciones del proceso de preocupación de seguridad de los empleados.",
+    opciones: ["Tarjeta CAR", "Work Point Sheet", "Safety Issue Report"],
+    correcta: 0
+  },
+  {
+    texto: "Es la acción que una persona genera al tener una inquietud y busca anticiparse para prevenir de algún suceso.",
+    opciones: ["Reportar", "Preocupación", "Introspección"],
+    correcta: 1
+  },
+  {
+    texto: "¿Cómo le llamamos a cualquier persona que emita una tarjeta CAR?",
+    opciones: ["Emisor", "Champion", "Liderazgo"],
+    correcta: 0
+  },
+  {
+    texto: "¿Quién soluciona la preocupación del empleado hasta su cierre?",
+    opciones: ["Receptor", "Liderazgo", "Seguridad"],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué significa T-CAR?",
+    opciones: [
+      "Tarjeta de cuidados ante riesgos.",
+      "Técnica de cuidado acción y reacción.",
+      "Tarjeta de control y la administración de riesgos."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "¿Es posible utilizar la herramienta T-CAR para reportar actos seguros?",
+    opciones: ["Sí", "No"],
+    correcta: 1
+  },
+  {
+    texto: "¿Qué es el Safety FMEA?",
+    opciones: [
+      "Herramienta de calidad para la evaluación de riesgos en procesos.",
+      "Herramienta analítica de seguridad para priorizar recursos.",
+      "Herramienta exclusiva del personal de seguridad post-accidente."
+    ],
+    correcta: 2
+  },
+  {
+    texto: "En el apartado de Severidad Potencial, ¿Qué es lo más severo evaluado con 15 puntos?",
+    opciones: ["Lesión Grave", "Incapacidad Permanente Crítica", "Fatalidad"],
+    correcta: 2
+  },
+  {
+    texto: "En el apartado de Probabilidad de Ocurrencia, ¿Cómo se denomina lo menos probable (0.033)?",
+    opciones: ["Casi Imposible", "Poco probable", "Imposible"],
+    correcta: 0
+  },
+  {
+    texto: "Si el Safety-FMEA da 48 puntos y solicita seguir controles a largo plazo, ¿Cuál es el nivel de riesgo?",
+    opciones: ["Alto", "Moderado", "Aceptable"],
+    correcta: 1
+  },
+  {
+    texto: "En el apartado de Probabilidad de Ocurrencia, ¿Qué control reduce a 0.033 el puntaje?",
+    opciones: [
+      "Sustitución",
+      "Control de ingeniería",
+      "Eliminación"
+    ],
+    correcta: 2
+  }
+];
+
+let indice = 0;
+let puntaje = 0;
+let equipo = "";
+
+function iniciarTrivia() {
+  equipo = document.getElementById("equipo").value.trim();
+  if (!equipo) return alert("Ingresa el nombre del equipo");
+  document.getElementById("quiz").classList.remove("hide");
+  mostrarPregunta();
+}
+
+function mostrarPregunta() {
+  const q = preguntas[indice];
+  document.getElementById("pregunta").innerText = q.texto;
+  const opcionesDiv = document.getElementById("opciones");
+  opcionesDiv.innerHTML = "";
+  q.opciones.forEach((op, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = op;
+    btn.onclick = () => seleccionar(i);
+    opcionesDiv.appendChild(btn);
+  });
+}
+
+function seleccionar(respuesta) {
+  const q = preguntas[indice];
+  const correcto = respuesta === q.correcta;
+  const puntos = correcto ? 10 : 0;
+  puntaje += puntos;
+
+  fetch("https://script.google.com/macros/s/AKfycbyRFs61x-QnU2py2qSeWfs3pormfBtthivmARQj7S6t0htIOuznqj30gNLQBcNV50K6/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      equipo,
+      pregunta: q.texto,
+      respuesta: q.opciones[respuesta],
+      correcto,
+      puntaje: puntos
+    })
+  });
+
+  indice++;
+  if (indice < preguntas.length) {
+    mostrarPregunta();
+  } else {
+    document.getElementById("quiz").classList.add("hide");
+    document.getElementById("final").classList.remove("hide");
+    document.getElementById("puntajeFinal").innerText = puntaje + " puntos";
+  }
+}
+</script>
+
+</body>
+</html>
